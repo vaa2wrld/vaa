@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Ulang Tahun!</title>
+    <style>
+        /* --- style.css (Dimasukkan Langsung) --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #008080; /* Warna khas Windows 95/98 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Hindari scrollbar jika tidak perlu */
+        }
+
+        .window {
+            background-color: #C0C0C0; /* Abu-abu khas jendela Windows */
+            border: 2px solid #FFFFFF;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            box-shadow: 2px 2px 0 #000;
+            width: 90%; /* Lebar jendela menjadi 90% dari viewport */
+            height: 90vh; /* Tinggi jendela menjadi 90% dari viewport height */
+            max-width: 1000px; /* Batasi lebar maksimal agar tidak terlalu besar di monitor lebar */
+            max-height: 800px; /* Batasi tinggi maksimal */
+            border-radius: 0;
+            box-sizing: border-box;
+            position: relative; /* Untuk modal */
+            display: flex; /* Untuk layout internal */
+            flex-direction: column; /* Mengatur item internal secara kolom */
+        }
+
+        .title-bar {
+            background: linear-gradient(to right, #000080, #1084D0); /* Biru title bar */
+            color: white;
+            padding: 3px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: default; /* Kursor default */
+            flex-shrink: 0; /* Pastikan title bar tidak menyusut */
+        }
+
+        .title-bar-text {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .title-bar-controls button {
+            background-color: #C0C0C0;
+            border: 2px solid #FFFFFF;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            font-size: 12px;
+            width: 16px;
+            height: 14px;
+            padding: 0;
+            margin-left: 2px;
+            line-height: 1;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .title-bar-controls button:active {
+            border: 2px inset #FFFFFF;
+            box-shadow: none;
+        }
+
+        .title-bar-controls button::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            background-color: #000;
+            margin: auto;
+        }
+
+        .title-bar-controls button[aria-label="Minimize"]::before {
+            background-color: transparent;
+            border-bottom: 2px solid #000;
+            width: 8px;
+            height: 2px;
+        }
+
+        .title-bar-controls button[aria-label="Maximize"]::before {
+            border: 1px solid #000;
+        }
+
+        .title-bar-controls button[aria-label="Close"]::before {
+            content: 'X';
+            background-color: transparent;
+            font-size: 10px;
+            line-height: 1;
+            display: block;
+            color: #000;
+        }
+
+        .window-body {
+            padding: 10px;
+            background-color: #FFFFFF;
+            border: 1px solid #808080;
+            border-top-color: #FFFFFF;
+            border-left-color: #FFFFFF;
+            box-sizing: border-box;
+            flex-grow: 1; /* Membuat window-body mengisi sisa ruang vertikal */
+            display: flex; /* Mengatur item internal secara kolom */
+            flex-direction: column; /* Mengatur item internal secara kolom */
+            max-height: unset; /* Hapus batasan tinggi sebelumnya */
+            overflow: hidden; /* Kontrol overflow di dalam terminal */
+        }
+
+        .terminal {
+            background-color: #000000; /* Latar belakang Command Prompt */
+            color: #FFFFFF; /* Teks Command Prompt */
+            font-family: 'Consolas', 'Courier New', monospace; /* Font monospace */
+            padding: 15px;
+            border: 2px inset #C0C0C0; /* Border inset khas terminal */
+            font-size: 14px;
+            white-space: pre-wrap; /* Agar baris baru dan spasi tampil */
+            flex-grow: 1; /* Membuat terminal mengisi sisa ruang vertikal */
+            overflow-y: auto; /* Aktifkan scroll di terminal jika kontennya panjang */
+            display: flex; /* Untuk menempatkan credit di bawah */
+            flex-direction: column; /* Untuk menempatkan credit di bawah */
+        }
+
+        .terminal p {
+            margin: 0;
+            line-height: 1.5;
+            overflow: hidden; /* Penting untuk efek mengetik */
+            white-space: nowrap; /* Penting untuk efek mengetik */
+            border-right: .15em solid orange; /* Kursor mengetik */
+            animation:
+              typing 3.5s steps(40, end),
+              blink-caret .75s step-end infinite;
+        }
+
+        /* Hapus animation di sini agar JS bisa mengontrolnya */
+        .terminal p:not(.typed) {
+            border-right: none;
+        }
+
+        .green {
+            color: #00FF00; /* Warna hijau untuk "SUCCESS" */
+        }
+
+        .red {
+            color: #FF0000; /* Warna merah untuk "bluescreen" */
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            color: #00FF00; /* Warna hijau untuk progress bar */
+        }
+
+        .alert-box {
+            background-color: #C0C0C0;
+            color: #000000;
+            border: 2px outset #FFFFFF;
+            padding: 15px;
+            text-align: center;
+            margin: 15px auto;
+            width: 80%; /* Lebar kotak alert */
+            box-sizing: border-box;
+            display: none; /* Sembunyikan secara default */
+            z-index: 10;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .ok-button {
+            background-color: #C0C0C0;
+            border: 2px outset #FFFFFF;
+            padding: 5px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 2px 2px 0 #000;
+            display: block; /* Agar tombol berada di tengah */
+            margin-left: auto;
+            margin-right: auto;
+            flex-shrink: 0; /* Pastikan tombol tidak menyusut */
+        }
+
+        .ok-button:active {
+            border: 2px inset #FFFFFF; /* Efek tombol ditekan */
+            box-shadow: none;
+        }
+
+        .final-message {
+            font-size: 18px;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #FFFFFF; /* Pastikan terlihat di terminal */
+        }
+
+        .credit {
+            margin-top: auto; /* Mendorong credit ke paling bawah terminal */
+            text-align: center;
+            font-size: 12px;
+            color: #AAA; /* Warna abu-abu agar tidak terlalu mencolok */
+            padding-top: 15px;
+            border-top: 1px dashed #555; /* Garis pemisah */
+        }
+
+        /* Modal Kustom (untuk mengganti alert() bawaan) */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Sembunyikan secara default */
+        }
+
+        .custom-alert-box {
+            background-color: #C0C0C0;
+            border: 2px solid #FFFFFF;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            box-shadow: 2px 2px 0 #000;
+            width: 350px;
+            max-width: 90%;
+            border-radius: 0;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .custom-alert-box .title-bar {
+            background: linear-gradient(to right, #000080, #1084D0);
+            color: white;
+            padding: 3px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .custom-alert-box .title-bar-controls {
+            display: none; /* Tidak perlu tombol minimize/maximize di modal */
+        }
+        .custom-alert-box .title-bar-controls button[aria-label="Close"] {
+            display: block; /* Hanya tampilkan tombol close */
+        }
+
+        .custom-alert-content {
+            padding: 20px;
+            background-color: #FFFFFF;
+            border: 1px solid #808080;
+            border-top-color: #FFFFFF;
+            border-left-color: #FFFFFF;
+            text-align: center;
+        }
+
+        .custom-alert-content p {
+            margin-bottom: 20px;
+        }
+
+        .custom-alert-content button {
+                background-color: #C0C0C0;
+                border: 2px outset #FFFFFF;
+                padding: 5px 20px;
+                font-weight: bold;
+                cursor: pointer;
+                box-shadow: 2px 2px 0 #000;
+            }
+            .custom-alert-content button:active {
+                border: 2px inset #FFFFFF;
+                box-shadow: none;
+            }
+    </style>
+</head>
+<body>
+    <audio id="startupSound" src="https://www.win95.com/audio/bootup.wav" preload="auto"></audio>
+    <audio id="notifySound" src="https://www.win95.com/audio/ding.wav" preload="auto"></audio>
+    <audio id="errorSound" src="https://www.win95.com/audio/chimes.wav" preload="auto"></audio>
+
+    <div class="window">
+        <div class="title-bar">
+            <div class="title-bar-text">Selamat Ulang Tahun! - happy_birthday.exe</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="terminal" id="terminal">
+                </div>
+            <button class="ok-button" id="mainOkButton" style="display:none;">OK</button>
+        </div>
+    </div>
+
+    <div class="custom-alert-overlay" id="customAlertOverlay">
+        <div class="custom-alert-box">
+            <div class="title-bar">
+                <div class="title-bar-text">Peringatan Sistem</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Close" onclick="closeCustomAlert()"></button>
+                </div>
+            </div>
+            <div class="custom-alert-content">
+                <p>Selamat Ulang Tahun! Semoga hari ini penuh kebahagiaan dan kesuksesan. Teruslah berkembang seperti sistem operasi terbaru!</p>
+                <button onclick="closeCustomAlert()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- script.js (Dimasukkan Langsung) ---
+        const terminalElement = document.getElementById('terminal');
+        const mainOkButton = document.getElementById('mainOkButton');
+        const customAlertOverlay = document.getElementById('customAlertOverlay');
+
+        // Audio elements
+        const startupSound = document.getElementById('startupSound');
+        const notifySound = document.getElementById('notifySound');
+        const errorSound = document.getElementById('errorSound');
+
+        // Text content for typing effect
+        const terminalContent = [
+            'C:\\Users\\[Nama_Yang_Ulang_Tahun]> systemctl start birthday_celebration.service',
+            'Initializing Birthday Protocol...',
+            'Loading modules: joy.dll, happiness.sys, prosperity.config...',
+            'Scanning for viruses: <span class="green">none detected.</span> (Hanya kebaikan yang terdeteksi!)',
+            '', // Baris kosong
+            '<div class="alert-box-hidden" id="internalAlertBox">', // Gunakan hidden class dan ID
+            '    <p class="alert-title">[Peringatan Sistem]</p>',
+            '    <p>Sistem mendeteksi peningkatan usia Anda.</p>',
+            '    <p>Ini adalah fitur, bukan bug!</p>',
+            '    <p>Akses berhasil diberikan ke tahun kehidupan yang baru.</p>',
+            '    <p>Tekan \'<span class="bold">OK</span>\' untuk melanjutkan ke kebahagiaan!</p>',
+            '</div>',
+            '', // Baris kosong
+            'Processing... <span class="progress-bar">[====================]</span> 100% Complete.',
+            '', // Baris kosong
+            'Message from C:\\Windows\\System32\\BirthdayCore.dll:',
+            'Semoga tahun ini penuh dengan <span class="bold">update positif</span>, tanpa <span class="red">bluescreen</span>, dan selalu mendapatkan koneksi yang <span class="bold">stabil</span> menuju kesuksesan!',
+            'Semoga semua harapanmu bisa \'<span class="bold">running smoothly</span>\' dan \'<span class="bold">compatible</span>\' dengan masa depan cerahmu.',
+            'Jangan lupa \'<span class="bold">backup</span>\' semua kenangan indahmu!',
+            '', // Baris kosong
+            'C:\\Users\\[Nama_Yang_Ulang_Tahun]> taskkill /IM worries.exe /F',
+            '<span class="green">SUCCESS:</span> The process "worries.exe" with PID [berapapun] was terminated.',
+            '', // Baris kosong
+            '<p class="final-message">Happy Birthday, <span id="namaUlangTahun">[Nama_Yang_Ulang_Tahun]</span>!</p>',
+            'Enjoy your new \'Operating System\' version of life!',
+            '', // Baris kosong sebelum credit
+            '<div class="credit">Created by vaa.2wrld</div>' // Baris credit
+        ];
+
+        let lineIndex = 0;
+        let charIndex = 0;
+        let typingInterval;
+        let namaPengguna = "Teman"; // Default nama
+
+        // Fungsi untuk memulai efek mengetik
+        function typeWriter() {
+            if (lineIndex < terminalContent.length) {
+                const currentLineText = terminalContent[lineIndex];
+                // Mengganti placeholder nama
+                const displayedText = currentLineText.replace(/\[Nama_Yang_Ulang_Tahun\]/g, namaPengguna);
+
+                // Cek jika baris saat ini adalah baris credit atau alert-box-hidden
+                const isSpecialLine = currentLineText.includes('<div class="credit">') || currentLineText.includes('<div class="alert-box-hidden"');
+
+                if (charIndex <= displayedText.length) {
+                    // Buat elemen baru (p atau div untuk credit/alert) jika ini baris pertama atau baris baru
+                    let currentElement;
+                    if (charIndex === 0 || terminalElement.lastChild && terminalElement.lastChild.classList.contains('typed')) {
+                        currentElement = document.createElement(isSpecialLine ? 'div' : 'p'); // Buat div jika credit/alert
+                        currentElement.innerHTML = displayedText.substring(0, charIndex);
+                        terminalElement.appendChild(currentElement);
+                    } else {
+                        currentElement = terminalElement.lastChild;
+                        currentElement.innerHTML = displayedText.substring(0, charIndex);
+                    }
+                    terminalElement.scrollTop = terminalElement.scrollHeight; // Scroll ke bawah
+
+                    charIndex++;
+                    typingInterval = setTimeout(typeWriter, 30); // Kecepatan mengetik
+                } else {
+                    // Jika sudah mencapai akhir baris
+                    const lastChild = terminalElement.lastChild;
+                    if (lastChild && lastChild.nodeName === 'P') { // Hanya tambahkan kelas 'typed' ke elemen <p>
+                        lastChild.classList.add('typed'); // Hapus kursor setelah selesai mengetik baris
+                    }
+                    if (isSpecialLine) { // Pastikan elemen credit/alert tampil penuh segera setelah diketik
+                        lastChild.innerHTML = displayedText;
+                    }
+
+                    charIndex = 0;
+                    lineIndex++;
+                    // Jeda sebentar sebelum baris berikutnya
+                    setTimeout(typeWriter, 700);
+
+                    // Khusus untuk memunculkan kotak peringatan internal
+                    if (currentLineText.includes('<div class="alert-box-hidden"')) {
+                        setTimeout(() => {
+                            const internalAlertBox = document.getElementById('internalAlertBox');
+                            if (internalAlertBox) {
+                                internalAlertBox.classList.remove('alert-box-hidden');
+                                internalAlertBox.style.display = 'block'; // Tampilkan kotak alert
+                                notifySound.play(); // Putar suara notifikasi
+                            }
+                            // Setelah alert internal muncul, tambahkan tombol OK utama
+                            mainOkButton.style.display = 'block';
+                            mainOkButton.onclick = showCustomAlert; // Hubungkan ke custom alert
+                        }, 500); // Jeda setelah alert internal muncul
+                    }
+                }
+            } else {
+                // Semua baris sudah diketik
+                clearTimeout(typingInterval);
+                // Mungkin bisa tambahkan suara akhir atau animasi di sini
+            }
+        }
+
+        // Fungsi untuk menampilkan custom alert
+        function showCustomAlert() {
+            customAlertOverlay.style.display = 'flex';
+            errorSound.play(); // Putar suara error/peringatan saat modal muncul
+            // Sembunyikan tombol OK utama setelah diklik
+            mainOkButton.style.display = 'none';
+        }
+
+        // Fungsi untuk menutup custom alert
+        function closeCustomAlert() {
+            customAlertOverlay.style.display = 'none';
+        }
+
+        // Meminta nama pengguna sebelum memulai
+        const namaInput = prompt("Siapa nama yang berulang tahun?");
+        if (namaInput) {
+            namaPengguna = namaInput;
+            // Update nama di placeholder yang sudah ada (sebelum typing effect dimulai)
+            const namaSpan = document.getElementById('namaUlangTahun');
+            if (namaSpan) {
+                namaSpan.textContent = namaPengguna;
+            }
+        }
+
+        // Jalankan typing effect setelah DOM dimuat dan nama didapatkan
+        window.onload = () => {
+            startupSound.play(); // Mainkan suara startup Windows
+            typeWriter();
+        };
+
+        // Event listener untuk tombol title bar (hanya efek visual)
+        document.querySelectorAll('.title-bar-controls button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Tidak melakukan apa-apa, hanya menunjukkan bahwa tombol bisa diklik
+                console.log(`Button ${button.ariaLabel} clicked!`);
+            });
+        });
+    </script>
+</body>
+</html>
